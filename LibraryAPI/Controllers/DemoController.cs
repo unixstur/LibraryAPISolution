@@ -1,4 +1,6 @@
 ﻿using LibraryAPI.Models.Employees;
+using LibraryAPI.Models.Status;
+using LibraryAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -9,10 +11,35 @@ namespace LibraryAPI.Controllers
 {
     public class DemoController : ControllerBase
     {
+        private IProvideServerStatusInformation _statusService;
+
+        public DemoController(IProvideServerStatusInformation statusService)
+        {
+            _statusService = statusService;
+        }
+
         [HttpGet("/status")]
         public ActionResult GetTheStatus()
         {
-            return Ok();
+            /*
+            GetStatusResponse response = _statusService.GetCurrentStatus();
+            //return Ok(new { Message = "All is good", CreatedAt = DateTime.Now });
+            return Ok(response);
+            */
+            GetStatusResponse response = null;
+            try
+            {
+                response = _statusService.GetCurrentStatus();
+            }
+            catch (Exception)
+            {
+                response = new GetStatusResponse
+                {
+                    Message = "Status is unavailable",
+                    CreatedAt = new DateTime()
+                };
+            }
+            return Ok(response);
         }
 
         [HttpGet("/employees/{employeeId:int}", Name = "demo-getemployee")]
@@ -44,6 +71,7 @@ namespace LibraryAPI.Controllers
             {
                 Id = new Random().Next(40, 2000),
                 Name = employeeToHire.Name,
+                Department = employeeToHire.Department,
                 Manager = "Sue Jones",
                 Salary = employeeToHire.StartingSalary * 1.3M
             };
